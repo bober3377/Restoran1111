@@ -1,0 +1,66 @@
+DROP DATABASE IF EXISTS restaurant_db;
+CREATE DATABASE restaurant_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE restaurant_db;
+
+CREATE TABLE users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    role ENUM('администратор', 'официант', 'гость') NOT NULL
+);
+
+CREATE TABLE tables (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    table_number INT NOT NULL UNIQUE,
+    status ENUM('свободен', 'занят') DEFAULT 'свободен'
+);
+
+CREATE TABLE reservations (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    client_name VARCHAR(100) NOT NULL,
+    client_phone VARCHAR(100), -- Поле для телефона/почты
+    reservation_datetime DATETIME NOT NULL,
+    table_id INT NOT NULL,
+    created_by INT,
+    FOREIGN KEY (table_id) REFERENCES tables(id),
+    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+);
+
+CREATE TABLE orders (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    table_id INT NOT NULL,
+    order_datetime DATETIME DEFAULT CURRENT_TIMESTAMP,
+    status ENUM('открыт', 'закрыт') DEFAULT 'открыт',
+    created_by INT,
+    FOREIGN KEY (table_id) REFERENCES tables(id),
+    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+);
+
+CREATE TABLE menu (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL UNIQUE,
+    price INT NOT NULL,
+    category VARCHAR(50) NOT NULL
+);
+
+CREATE TABLE order_items (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    order_id INT NOT NULL,
+    dish_name VARCHAR(100) NOT NULL,
+    quantity INT NOT NULL,
+    FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
+);
+
+-- Базовые данные
+INSERT INTO users (username, password, role) VALUES 
+('admin', 'admin123', 'администратор'),
+('waiter', '1234', 'официант');
+
+INSERT INTO tables (table_number, status) VALUES 
+(1, 'свободен'), (2, 'свободен'), (3, 'свободен'), (4, 'свободен'),
+(5, 'свободен'), (6, 'свободен'), (7, 'свободен'), (8, 'свободен');
+
+INSERT INTO menu (name, price, category) VALUES 
+('Борщ', 350, 'Супы'), ('Паста Карбонара', 550, 'Горячее'),
+('Стейк Рибай', 1200, 'Горячее'), ('Цезарь с курицей', 450, 'Салаты'),
+('Кола', 150, 'Напитки'), ('Чизкейк', 300, 'Десерты');
